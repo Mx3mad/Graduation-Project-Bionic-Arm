@@ -1,62 +1,89 @@
-// using servo motor library
-#include <Servo.h>
+// Include Wire Library for I2C Communications
+#include <Wire.h>
+ 
+// Include Adafruit PWM Library
+#include <Adafruit_PWMServoDriver.h>
+ 
+#define MIN_PULSE_WIDTH       550
+#define MAX_PULSE_WIDTH       2300
+#define FREQUENCY             50
 
-// defining both maximum and minimum angles the motors will rotate (Temporary values).
-#define MAX_ROTATION_ANGLE 150
-#define MIN_ROTATION_ANGLE 50
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+ 
+// Define EMGsensor Input Pin.
+int emgSensor = A1;
+int potentio = A0;
 
-int sumOfSignalsAmp = 0;  // summation of all input signals amplitudes until a certain times.
-int numOfSignals = 0;     // number of all input signals amplitudes until a certain times.
-int EMGSensor = A0;
-
-Servo motor1;  // 1st motor variable/object.
-
+int sensorReadings = 0;
+int range = 0;
+int openVal = 900;
+int closeVal = 0;
+ 
+// Define Motor Outputs on PCA9685 board
+int littleFing = 0;
+int ringFing = 4;
+int middleFing = 8;
+int indexFing = 12;
+int thumbFing = 15;
+ 
 void setup() {
-  // put your setup code here, to run once:
-
-  Serial.begin(9600);  // setup serial monitor.
-  motor1.attach(3);    // attaching the motor1 object to digital pin 3.
+  pwm.begin();
+  pwm.setPWMFreq(FREQUENCY);
+  Serial.begin(9600);
+  pinMode(emgSensor,INPUT);
 }
-
+ 
+ 
+void grabFinger(int inputValue, int finger) {
+  int pulseWide = 0, pulseWidth = 0, sensorVal = 0;
+  // Convert to pulse width
+  pulseWide = map(inputValue, 0, 1023, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH);
+  pulseWidth = int(float(pulseWide) / 1000000 * FREQUENCY * 4096);
+  // Control/grab Motor/finger
+  pwm.setPWM(finger, 0, pulseWidth);
+}
+ 
 void loop() {
-  // put your main code here, to run repeatedly:
+  
+  sensorReadings = analogRead(emgSensor);
+  range = analogRead(potentio);
+  // printing sensor and potentio readings
+  Serial.print("sensor:  ");
+  Serial.print(sensorReadings);
+  Serial.print("  potentio:  ");
+  Serial.println(range);
 
-  // a variable that stores the value of the amplitude of the signal coming from the EMG sensor.
-  int inputSignalAmp = analogRead(EMGSensor);
-
-  // a condition that resets the values of sumOfSignalsAmp & numOfSignals after a time = delay * numOfSignals value.
-  if (numOfSignals == 25) {
-    sumOfSignalsAmp = 0;
-    numOfSignals = 0;
+  if(sensorReadings > range) {
+    // Close The Arm    
+    //Control little finger
+    grabFinger(closeVal, littleFing);
+    
+    //Control ring finger
+    grabFinger(closeVal, ringFing);
+      
+    //Control middle finger
+    grabFinger(closeVal, middleFing);
+    
+    //Control index finger
+    grabFinger(closeVal, indexFing);
+    
+    //Control thumb finger
+    grabFinger(closeVal, thumbFing);
+  } else {
+      //Open The Arm    
+      //Control little finger
+      grabFinger(openVal, littleFing);
+      
+      //Control ring finger
+      grabFinger(openVal, ringFing);
+        
+      //Control middle finger
+      grabFinger(openVal, middleFing);
+      
+      //Control index finger
+      grabFinger(openVal, indexFing);
+      
+      //Control thumb finger
+      grabFinger(openVal, thumbFing);
   }
-
-  // adding each new input signal amplitude to the total,
-  // and increasing the number of signals by 1 each cycle of the main loop.
-  sumOfSignalsAmp += inputSignalAmp;
-  numOfSignals++;
-
-  // calculating the average of all signals amplitudes up to this point in time.
-  int avgInputSignalAmp = sumOfSignalsAmp / numOfSignals;
-
-  // a condition that changes the rotation of the motor depending on the avgInputSignalAmp
-  // (whether the hand is gripping or not).
-  if (avgInputSignalAmp > 20) {
-    // if the avgInputSignalAmp is > than 20 it will rotate the motor to the MAX_ROTATION_ANGLE.
-    motor1.write(MAX_ROTATION_ANGLE);
-
-    // the Serial print is for debugging purposes.
-    Serial.print("Grip ");
-    Serial.println(avgInputSignalAmp);
-  }
-
-  else {
-    // if the avgInputSignalAmp is <= to 20 it will rotate the motor back to the MIN_ROTATION_ANGLE.
-    motor1.write(MIN_ROTATION_ANGLE);
-
-    // the Serial print is for debugging purposes.
-    Serial.print("Release ");
-    Serial.println(avgInputSignalAmp);
-  }
-
-  delay(10);
 }
