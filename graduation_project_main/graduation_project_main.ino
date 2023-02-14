@@ -20,7 +20,7 @@ int openVal = 900;
 int closeVal = 0;
  
 // Define Motor Outputs on PCA9685 board
-int littleFing = 0;
+int pinkieFing = 0;
 int ringFing = 4;
 int middleFing = 8;
 int indexFing = 12;
@@ -32,8 +32,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(emgSensor,INPUT);
 }
- 
- 
+
 void grabFinger(int inputValue, int finger) {
   int pulseWide = 0, pulseWidth = 0, sensorVal = 0;
   // Convert to pulse width
@@ -41,6 +40,23 @@ void grabFinger(int inputValue, int finger) {
   pulseWidth = int(float(pulseWide) / 1000000 * FREQUENCY * 4096);
   // Control/grab Motor/finger
   pwm.setPWM(finger, 0, pulseWidth);
+}
+
+void clenchHand(int motorMovement){
+  //Control little finger
+  grabFinger(motorMovement, pinkieFing);
+  
+  //Control ring finger
+  grabFinger(motorMovement, ringFing);
+    
+  //Control middle finger
+  grabFinger(motorMovement, middleFing);
+  
+  //Control index finger
+  grabFinger(motorMovement, indexFing);
+  
+  //Control thumb finger
+  grabFinger(motorMovement, thumbFing);
 }
  
 void loop() {
@@ -55,35 +71,10 @@ void loop() {
 
   if(sensorReadings > range) {
     // Close The Arm    
-    //Control little finger
-    grabFinger(closeVal, littleFing);
-    
-    //Control ring finger
-    grabFinger(closeVal, ringFing);
-      
-    //Control middle finger
-    grabFinger(closeVal, middleFing);
-    
-    //Control index finger
-    grabFinger(closeVal, indexFing);
-    
-    //Control thumb finger
-    grabFinger(closeVal, thumbFing);
-  } else {
-      //Open The Arm    
-      //Control little finger
-      grabFinger(openVal, littleFing);
-      
-      //Control ring finger
-      grabFinger(openVal, ringFing);
-        
-      //Control middle finger
-      grabFinger(openVal, middleFing);
-      
-      //Control index finger
-      grabFinger(openVal, indexFing);
-      
-      //Control thumb finger
-      grabFinger(openVal, thumbFing);
+    clenchHand(closeVal);
+  } 
+  else {
+    //Open The Arm    
+    clenchHand(openVal);
   }
 }
