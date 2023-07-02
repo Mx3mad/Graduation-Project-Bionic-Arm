@@ -1,80 +1,101 @@
-// Include Wire Library for I2C Communications
-#include <Wire.h>
- 
 // Include Adafruit PWM Library
 #include <Adafruit_PWMServoDriver.h>
  
-#define MIN_PULSE_WIDTH       600
-#define MAX_PULSE_WIDTH       150
-#define FREQUENCY             60
+#define MIN_PULSE_WIDTH       2500
+#define MAX_PULSE_WIDTH       500
+#define FREQUENCY             50
 
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+// Instantiating an object to control the servo driver
+Adafruit_PWMServoDriver servoDriver = Adafruit_PWMServoDriver();
  
-// Define EMGsensor Input Pin.
-int emgSensor = A5;
-int potentio = A0;
+// Declaring variables to define/store the EMG sensor and potentiometer pins.
+int emg_sensor = A5;
+int potentiometer = A0;
+ 
+// Declaring variables to define/store the motors attached to
+// each finger with there pins on PCA9685 board
+int pinky_finger = 0;
+int ring_finger = 4;
+int middle_finger = 8;
+int index_finger = 12;
+int thumb_finger = 15;
 
-int sensorReadings = 0;
-int range = 0;
-int openAngle = 0;
-int closeAngle = 140;
- 
-// Define Motor Outputs on PCA9685 board
-int pinkieFing = 0;
-int ringFing = 4;
-int middleFing = 8;
-int indexFing = 12;
-int thumbFing = 15;
- 
-void setup() {
-  pwm.begin();
-  pwm.setPWMFreq(FREQUENCY);
+// Declaring variables to store the sensor reading and the threshold
+int sensor_reading;
+int threshold;
+
+void setup() 
+{
+  servoDriver.begin();
+  servoDriver.setPWMFreq(FREQUENCY);
   Serial.begin(9600);
-  pinMode(emgSensor,INPUT);
+  pinMode(emg_sensor, INPUT);
+  pinMode(potentiometer, INPUT);
 }
 
-void grabFinger(int deg, int finger) {
-  pwm.setPWM(finger, 0, angleToPulse(deg));
-}
+void loop() 
+{
+  sensor_reading = analogRead(emg_sensor);
+  threshold = analogRead(potentiometer);
 
-void clenchHand(int motorDeg){
-  //Control little finger
-  grabFinger(motorDeg, pinkieFing);
-  
-  //Control ring finger
-  grabFinger(motorDeg, ringFing);
-    
-  //Control middle finger
-  grabFinger(motorDeg, middleFing);
-  
-  //Control index finger
-  grabFinger(motorDeg, indexFing);
-  
-  //Control thumb finger
-  grabFinger(motorDeg, thumbFing);
-}
- 
-void loop() {
-  
-  sensorReadings = analogRead(emgSensor);
-  range = analogRead(potentio);
-  // printing sensor and potentio readings
-  Serial.print("sensor:  ");
-  Serial.print(sensorReadings);
-  Serial.print("  potentio:  ");
-  Serial.println(range);
+  // printing sensor and potentiometer readings
+  Serial.println("sensor:  " + String(sensor_reading) + "  potentiometer:  " + String(threshold));
 
-  if(sensorReadings > range) {
-    // Close The Arm    
-    clenchHand(closeAngle);
+  if(sensor_reading > threshold) 
+  {
+    // Clench The Hand    
+    clenchHand();
   } 
-  else {
-    //Open The Arm    
-    clenchHand(openAngle);
+  else 
+  {
+    // Release The Hand   
+    releaseHand();
   }
 }
 
-uint16_t angleToPulse(int angle) {
-  uint16_t pulse = map(angle, 0, 180, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH);
-  return pulse;
+void grabFinger(int deg, int finger) 
+{
+  servoDriver.setPWM(finger, 0, angleToPulse(deg));
+}
+
+void clenchHand()
+{
+  //Control little finger
+  grabFinger(140, pinky_finger);
+  
+  //Control ring finger
+  grabFinger(140, ring_finger);
+    
+  //Control middle finger
+  grabFinger(140, middle_finger);
+  
+  //Control index finger
+  grabFinger(140, index_finger);
+  
+  //Control thumb finger
+  grabFinger(140, thumb_finger);
+}
+
+void releaseHand()
+{
+  //Control little finger
+  grabFinger(0, pinky_finger);
+  
+  //Control ring finger
+  grabFinger(0, ring_finger);
+    
+  //Control middle finger
+  grabFinger(0, middle_finger);
+  
+  //Control index finger
+  grabFinger(0, index_finger);
+  
+  //Control thumb finger
+  grabFinger(0, thumb_finger);
+}
+
+int angleToPulse(int angle) 
+{
+  int pulse_width = map(angle, 0, 180, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH);
+  return pulse_width;
 }
