@@ -4,15 +4,15 @@
 // Include Adafruit PWM Library
 #include <Adafruit_PWMServoDriver.h>
  
-#define MIN_PULSE_WIDTH       550
-#define MAX_PULSE_WIDTH       2300
-#define FREQUENCY             50
+#define MIN_PULSE_WIDTH       600
+#define MAX_PULSE_WIDTH       150
+#define FREQUENCY             60
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
  
 // define potentio pin
 int potentio = A0;
-int range = 0;
+int range = 135;
  
 // Define Motor Outputs on PCA9685 board
 int littleFing = 0;
@@ -25,40 +25,35 @@ void setup() {
   pwm.begin();
   pwm.setPWMFreq(FREQUENCY);
   Serial.begin(9600);
-  pinMode(emgSensor,INPUT);
+  //pinMode(emgSensor,INPUT);
 }
  
  
 
 void loop() {
-    range = analogRead(potentio);
-  // printing potentio readings
-    Serial.println(range);
+    grabFinger(0, littleFing);
+    grabFinger(0, ringFing);
+    grabFinger(0, middleFing);
+    grabFinger(0, indexFing);
+    grabFinger(0, thumbFing);
 
-    //Control little finger
-    grabFinger(range, littleFing);
-    
-    //Control ring finger
-    // grabFinger(range, ringFing);
-      
-    //Control middle finger
-    // grabFinger(range, middleFing);
-    
-    //Control index finger
-    // grabFinger(range, indexFing);
-    
-    //Control thumb finger
-    // grabFinger(range, thumbFing);
+    delay(2000);
+    grabFinger(150, littleFing);
+    grabFinger(150, ringFing);
+    grabFinger(150, middleFing);
+    delay(500);
+    grabFinger(150, indexFing);
+    delay(700);
+    grabFinger(100, thumbFing);
+    delay(2000);
 
 }
 
-void grabFinger(int inputeValue, int finger) {
-  int pulseWide = 0, pulseWidth = 0, sensorVal = 0;
-
-  // Convert to pulse width
-  pulseWide = map(inputeValue, 0, 1023, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH);
-  pulseWidth = int(float(pulseWide) / 1000000 * FREQUENCY * 4096);
-  // Control/grab Motor/finger
-  pwm.setPWM(finger, 0, pulseWidth);
+void grabFinger(int deg, int finger) {
+  pwm.setPWM(finger, 0, angleToPulse(deg));
 }
 
+uint16_t angleToPulse(int angle) {
+  uint16_t pulse = map(angle, 0, 180, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH);
+  return pulse;
+}
