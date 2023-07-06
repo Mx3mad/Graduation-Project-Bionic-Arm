@@ -11,7 +11,7 @@
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
  
 // define potentio pin
-int potentio = A0;
+int potentio = A1;
 int range = 135;
  
 // Define Motor Outputs on PCA9685 board
@@ -20,6 +20,9 @@ int ringFing = 4;
 int middleFing = 8;
 int indexFing = 12;
 int thumbFing = 15;
+
+int closeAngle = 0;
+int openAngle = 150;
  
 void setup() {
   pwm.begin();
@@ -31,20 +34,20 @@ void setup() {
  
 
 void loop() {
-    grabFinger(0, littleFing);
-    grabFinger(0, ringFing);
-    grabFinger(0, middleFing);
-    grabFinger(0, indexFing);
-    grabFinger(0, thumbFing);
+    grabFinger(closeAngle, littleFing);
+    grabFinger(closeAngle, ringFing);
+    grabFinger(closeAngle, middleFing);
+    grabFinger(closeAngle, thumbFing);
+    delay(100);
+    grabFinger(closeAngle, indexFing);
 
     delay(2000);
-    grabFinger(150, littleFing);
-    grabFinger(150, ringFing);
-    grabFinger(150, middleFing);
-    delay(500);
-    grabFinger(150, indexFing);
-    delay(700);
-    grabFinger(100, thumbFing);
+    grabFinger(openAngle, littleFing);
+    grabFinger(openAngle, ringFing);
+    grabFinger(openAngle, middleFing);
+    grabFinger(openAngle, indexFing);
+    delay(200);
+    grabFinger(openAngle, thumbFing);
     delay(2000);
 
 }

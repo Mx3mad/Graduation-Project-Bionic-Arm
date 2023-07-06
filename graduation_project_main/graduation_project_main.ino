@@ -1,16 +1,16 @@
 // Include Adafruit PWM Library
 #include <Adafruit_PWMServoDriver.h>
  
-#define MIN_PULSE_WIDTH       2500
-#define MAX_PULSE_WIDTH       500
-#define FREQUENCY             50
+#define MIN_PULSE_WIDTH       600
+#define MAX_PULSE_WIDTH       150
+#define FREQUENCY             60
 
 // Instantiating an object to control the servo driver
 Adafruit_PWMServoDriver servoDriver = Adafruit_PWMServoDriver();
  
 // Declaring variables to define/store the EMG sensor and potentiometer pins.
-int emg_sensor = A5;
-int potentiometer = A0;
+int emg_sensor = A0;
+int potentiometer = A1;
  
 // Declaring variables to define/store the motors attached to
 // each finger with there pins on PCA9685 board
@@ -72,6 +72,7 @@ void clenchHand()
   //Control index finger
   grabFinger(140, index_finger);
   
+  delay(200);
   //Control thumb finger
   grabFinger(140, thumb_finger);
 }
